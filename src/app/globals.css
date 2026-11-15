@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ── NAFISAÉ Design System ─────────────────────────── */
+:root {
+  --obsidian:    #080808;
+  --alabaster:   #FDFDFB;
+  --ivory:       #F5F5F0;
+  --champagne:   #C5A880;
+  --crimson:     #D02020;
+  --hairline:    rgba(0, 0, 0, 0.08);
+  --hairline-w:  rgba(255, 255, 255, 0.08);
+}
+
+/* Force light mode — this is a fashion site, not a system UI */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #FDFDFB;
+    --foreground: #080808;
+  }
+}
+
+/* ── Base Reset ───────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #FDFDFB;
+  color: #080808;
+  font-family: 'Syne', 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Typography Utilities ─────────────────────────── */
+.font-editorial {
+  font-family: 'Anton', 'Impact', 'Arial Black', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+.font-luxury {
+  font-family: 'Syne', system-ui, sans-serif;
+}
+
+/* ── Luxury Scrollbar ─────────────────────────────── */
+::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(8, 8, 8, 0.2);
+  border-radius: 0;
+}
+
+/* ── Selection Styling ─────────────────────────────── */
+::selection {
+  background: #080808;
+  color: #FDFDFB;
+}
+
+/* ── Smooth image transitions ───────────────────────── */
+img {
+  display: block;
+}
+
+/* ── Reduced Motion Support ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Video placeholder pulse ─────────────────────────── */
+@keyframes softPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+.placeholder-pulse {
+  animation: softPulse 2.5s ease-in-out infinite;
+}
+
+/* ── Studio Grid Lines Overlay ─────────────────────── */
+.studio-grid {
+  background-image:
+    linear-gradient(rgba(8,8,8,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8,8,8,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── Admin Dark Theme ───────────────────────────────── */
+.admin-dark {
+  background-color: #0a0a0a;
+  color: #e8e8e3;
+}
