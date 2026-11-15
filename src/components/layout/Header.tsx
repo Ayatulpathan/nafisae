@@ -9,6 +9,8 @@ import { useState } from 'react';
 
 const NAV_LINKS = [
   { label: 'STUDIO', href: '/virtual-studio' },
+  { label: 'LOOKBOOK', href: '/lookbook' },
+  { label: 'AI TRY-ON', href: '/try-on' },
   { label: 'SHOP ALL', href: '/shop' },
   { label: 'COLLECTIONS', href: '/collections' },
   { label: 'STORY', href: '/story' },
