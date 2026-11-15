@@ -3,25 +3,42 @@
 /**
  * NAFISAÉ Virtual Fashion Studio
  *
- * Phase 2 Enhanced:
- *  - High-performance double-buffered VideoModelViewer
- *  - Real-time outfit switching with cross-fade (no black flash / layout jump)
- *  - Real animation loops (Idle, Walk, Turn, Pose)
- *  - Seamless state synchronization across video, 3D, and AI modes
+ * Fully integrated multi-mode showroom:
+ *  - Mode 1: High-performance double-buffered VideoModelViewer
+ *  - Mode 2: Interactive Real-Time 3D WebGL PBR Model Viewer (Three.js)
+ *  - Mode 3: AI Virtual Try-On Studio Preview
+ *  - Staggered miniature outfit rack with instant live product switching
  */
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { X, ChevronRight, Play, Pause, RefreshCw } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { X, ChevronRight, Play, Pause, RefreshCw, Box } from 'lucide-react';
 import { useStudio } from '@/contexts/StudioContext';
 import { useCart } from '@/contexts/CartContext';
 import { PRODUCTS, formatBDT } from '@/data/products';
 import { AnimationType, ViewMode, Product, Color } from '@/types/product';
 import VideoModelViewer from '@/components/fashion-studio/VideoModelViewer';
 
+// Dynamic import of 3D WebGL viewer with SSR disabled
+const ThreeDModelViewer = dynamic(
+  () => import('@/components/fashion-studio/ThreeDModelViewer'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+        <div className="w-24 h-48 bg-black/5 animate-pulse" />
+        <span className="text-[7px] tracking-[0.3em] uppercase text-black/30">
+          Initializing WebGL 3D Engine...
+        </span>
+      </div>
+    ),
+  }
+);
+
 const MODE_LABELS: Record<ViewMode, string> = {
   video: 'Video Model',
-  '3d': '3D Viewer',
+  '3d': '3D WebGL Viewer',
   tryon: 'AI Try-On',
 };
 
@@ -80,7 +97,6 @@ export default function VirtualStudioPage() {
     setTimeout(() => setAddFeedback(false), 2000);
   };
 
-  // Determine active video source based on garment and active motion state
   const getVideoSrc = (): string => {
     if (!selectedProduct?.assets) return '/videos/models/default-idle.mp4';
     const { videoIdle, videoWalk, videoTurn, videoPose } = selectedProduct.assets;
@@ -106,12 +122,13 @@ export default function VirtualStudioPage() {
             <button
               key={mode}
               onClick={() => setMode(mode)}
-              className={`text-[8px] tracking-[0.3em] uppercase px-5 py-2 border-r border-black/8 transition-all ${
+              className={`text-[8px] tracking-[0.3em] uppercase px-5 py-2 border-r border-black/8 transition-all flex items-center gap-1.5 ${
                 activeMode === mode
-                  ? 'bg-[#080808] text-[#FDFDFB]'
-                  : 'hover:bg-black/5'
+                  ? 'bg-[#080808] text-[#FDFDFB] font-bold'
+                  : 'hover:bg-black/5 text-black/70'
               }`}
             >
+              {mode === '3d' && <Box size={11} />}
               {MODE_LABELS[mode]}
             </button>
           ))}
@@ -139,6 +156,13 @@ export default function VirtualStudioPage() {
           </div>
         )}
 
+        {/* 3D Mode Hint */}
+        {activeMode === '3d' && (
+          <div className="text-[7px] tracking-[0.25em] uppercase text-black/50 hidden sm:block">
+            Orbit 360° · PBR Materials · Multi-Angle Camera Snap
+          </div>
+        )}
+
         <Link href="/" className="ml-4 hover:opacity-50 transition-opacity">
           <X size={16} strokeWidth={1.5} />
         </Link>
@@ -146,7 +170,7 @@ export default function VirtualStudioPage() {
 
       {/* ── Main Split Canvas ─── */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Side: Category Nav + Model Stage */}
+        {/* Left Side: Category Nav + Stage */}
         <div className="relative flex" style={{ width: '52%' }}>
           {/* Vertical Category Bracket Index */}
           <nav className="flex-shrink-0 w-36 bg-[#F5F5F0] flex flex-col pt-6 pb-4 border-r border-black/8 overflow-y-auto">
@@ -200,7 +224,7 @@ export default function VirtualStudioPage() {
             </div>
           </nav>
 
-          {/* Model Stage */}
+          {/* Model Display Stage */}
           <div className="flex-1 relative bg-[#EEEEE9] studio-grid overflow-hidden">
             {/* Massive Active Category Headline (bottom left) */}
             <div className="absolute bottom-6 left-4 z-20 pointer-events-none">
@@ -220,7 +244,7 @@ export default function VirtualStudioPage() {
               </p>
             </div>
 
-            {/* Video Model Viewer Component */}
+            {/* Video Model Mode */}
             {activeMode === 'video' && selectedProduct && (
               <VideoModelViewer
                 productId={selectedProduct.id}
@@ -231,34 +255,27 @@ export default function VirtualStudioPage() {
               />
             )}
 
-            {/* 3D Mode */}
-            {activeMode === '3d' && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                <div className="w-32 h-64 bg-gradient-to-b from-[#d0d0cb] to-[#b8b8b3] opacity-60 animate-pulse" />
-                <p className="text-[8px] tracking-[0.4em] uppercase text-black/40">
-                  Three.js 3D Fashion Viewer
-                </p>
-                <p className="text-[7px] tracking-[0.25em] uppercase text-black/25">
-                  Preparing WebGL Engine — Phase 3
-                </p>
-              </div>
+            {/* Real-Time Interactive 3D WebGL Mode */}
+            {activeMode === '3d' && selectedProduct && (
+              <ThreeDModelViewer product={selectedProduct} />
             )}
 
             {/* AI Try-On Mode */}
             {activeMode === 'tryon' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center">
-                <div className="border border-black/10 p-8 max-w-xs bg-white/50 backdrop-blur-sm">
+                <div className="border border-black/10 p-8 max-w-xs bg-white/70 backdrop-blur-md">
                   <p className="text-[8px] tracking-[0.3em] uppercase text-black/40 mb-2 font-bold">
                     AI Virtual Try-On
                   </p>
-                  <p className="text-[7px] tracking-[0.2em] uppercase text-black/35 leading-relaxed">
-                    Upload your photograph to synthesize this garment onto your personal physique.
+                  <p className="text-[7px] tracking-[0.2em] uppercase text-black/40 leading-relaxed">
+                    Upload your photograph to synthesize this garment onto your personal physique with
+                    our local open-source CatVTON model.
                   </p>
                   <Link
                     href="/try-on"
-                    className="mt-4 inline-block bg-black text-white px-5 py-2.5 text-[7px] tracking-[0.3em] uppercase hover:bg-black/80 transition-colors"
+                    className="mt-4 inline-block bg-black text-white px-6 py-2.5 text-[7px] tracking-[0.3em] uppercase hover:bg-black/80 transition-colors"
                   >
-                    Open Try-On Studio
+                    Launch Try-On Studio
                   </Link>
                 </div>
               </div>
@@ -305,7 +322,6 @@ export default function VirtualStudioPage() {
                   style={{ backgroundColor: isActive ? '#F0F0EB' : '#F7F7F2' }}
                 >
                   <div className="flex-1 flex items-end justify-center px-2 pt-2 pb-1 relative overflow-hidden">
-                    {/* Miniature video preview if active, or styled silhouette */}
                     {product.assets?.videoIdle && isActive ? (
                       <video
                         src={product.assets.videoIdle}
