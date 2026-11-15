@@ -38,13 +38,12 @@ export const PRODUCTS: Product[] = [
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
       { id: 'col-2', name: 'Chrome', hex: '#c0c0c0' },
     ],
-    images: [
-      '/images/products/dress-chrome-1.jpg',
-      '/images/products/dress-chrome-2.jpg',
-    ],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
       videoIdle: '/videos/models/dress-chrome-idle.mp4',
       videoWalk: '/videos/models/dress-chrome-walk.mp4',
+      videoTurn: '/videos/models/default-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/dress-chrome-garment.png',
     },
     status: 'published',
@@ -67,10 +66,12 @@ export const PRODUCTS: Product[] = [
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
       { id: 'col-3', name: 'Bordeaux', hex: '#5c0a26' },
     ],
-    images: ['/images/products/dress-velvet-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
-      videoIdle: '/videos/models/dress-velvet-idle.mp4',
-      videoWalk: '/videos/models/dress-velvet-walk.mp4',
+      videoIdle: '/videos/models/default-idle.mp4',
+      videoWalk: '/videos/models/default-walk.mp4',
+      videoTurn: '/videos/models/default-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/dress-velvet-garment.png',
     },
     status: 'published',
@@ -94,9 +95,12 @@ export const PRODUCTS: Product[] = [
       { id: 'col-4', name: 'Alabaster', hex: '#f5f0e8' },
       { id: 'col-5', name: 'Blush Mist', hex: '#e8d5cd' },
     ],
-    images: ['/images/products/dress-tulle-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
-      videoIdle: '/videos/models/dress-tulle-idle.mp4',
+      videoIdle: '/videos/models/dress-chrome-idle.mp4',
+      videoWalk: '/videos/models/dress-chrome-walk.mp4',
+      videoTurn: '/videos/models/default-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/dress-tulle-garment.png',
     },
     status: 'published',
@@ -120,10 +124,12 @@ export const PRODUCTS: Product[] = [
     colors: [
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
     ],
-    images: ['/images/products/corset-patent-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
       videoIdle: '/videos/models/corset-patent-idle.mp4',
+      videoWalk: '/videos/models/default-walk.mp4',
       videoTurn: '/videos/models/corset-patent-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/corset-patent-garment.png',
     },
     status: 'published',
@@ -146,9 +152,12 @@ export const PRODUCTS: Product[] = [
       { id: 'col-6', name: 'Ivory', hex: '#fffff0' },
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
     ],
-    images: ['/images/products/corset-silk-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
-      videoIdle: '/videos/models/corset-silk-idle.mp4',
+      videoIdle: '/videos/models/corset-patent-idle.mp4',
+      videoWalk: '/videos/models/default-walk.mp4',
+      videoTurn: '/videos/models/corset-patent-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/corset-silk-garment.png',
     },
     status: 'published',
@@ -173,9 +182,11 @@ export const PRODUCTS: Product[] = [
       { id: 'col-7', name: 'Solar Yellow', hex: '#f5d000' },
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
     ],
-    images: ['/images/products/body-solar-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
       videoIdle: '/videos/models/body-solar-idle.mp4',
+      videoWalk: '/videos/models/default-walk.mp4',
+      videoTurn: '/videos/models/default-turn.mp4',
       videoPose: '/videos/models/body-solar-pose.mp4',
       tryonGarment: '/images/tryon/body-solar-garment.png',
     },
@@ -198,9 +209,12 @@ export const PRODUCTS: Product[] = [
     colors: [
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
     ],
-    images: ['/images/products/body-mesh-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
-      videoIdle: '/videos/models/body-mesh-idle.mp4',
+      videoIdle: '/videos/models/body-solar-idle.mp4',
+      videoWalk: '/videos/models/default-walk.mp4',
+      videoTurn: '/videos/models/default-turn.mp4',
+      videoPose: '/videos/models/body-solar-pose.mp4',
       tryonGarment: '/images/tryon/body-mesh-garment.png',
     },
     status: 'published',
@@ -225,10 +239,12 @@ export const PRODUCTS: Product[] = [
       { id: 'col-8', name: 'Ecru', hex: '#c8b89a' },
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
     ],
-    images: ['/images/products/coat-shearling-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
       videoIdle: '/videos/models/coat-shearling-idle.mp4',
       videoWalk: '/videos/models/coat-shearling-walk.mp4',
+      videoTurn: '/videos/models/default-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/coat-shearling-garment.png',
     },
     status: 'published',
@@ -251,10 +267,12 @@ export const PRODUCTS: Product[] = [
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
       { id: 'col-9', name: 'Blood Red', hex: '#8b0000' },
     ],
-    images: ['/images/products/coat-vinyl-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
-      videoIdle: '/videos/models/coat-vinyl-idle.mp4',
-      videoTurn: '/videos/models/coat-vinyl-turn.mp4',
+      videoIdle: '/videos/models/coat-shearling-idle.mp4',
+      videoWalk: '/videos/models/coat-shearling-walk.mp4',
+      videoTurn: '/videos/models/default-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/coat-vinyl-garment.png',
     },
     status: 'published',
@@ -279,10 +297,12 @@ export const PRODUCTS: Product[] = [
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
       { id: 'col-10', name: 'Steel Blue', hex: '#3a5a7c' },
     ],
-    images: ['/images/products/jacket-cyber-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
-      videoIdle: '/videos/models/jacket-cyber-idle.mp4',
-      videoWalk: '/videos/models/jacket-cyber-walk.mp4',
+      videoIdle: '/videos/models/default-idle.mp4',
+      videoWalk: '/videos/models/default-walk.mp4',
+      videoTurn: '/videos/models/default-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/jacket-cyber-garment.png',
     },
     status: 'published',
@@ -308,10 +328,12 @@ export const PRODUCTS: Product[] = [
       { id: 'col-4', name: 'Alabaster', hex: '#f5f0e8' },
       { id: 'col-11', name: 'Slate', hex: '#708090' },
     ],
-    images: ['/images/products/pants-wide-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
-      videoIdle: '/videos/models/pants-wide-idle.mp4',
-      videoWalk: '/videos/models/pants-wide-walk.mp4',
+      videoIdle: '/videos/models/default-idle.mp4',
+      videoWalk: '/videos/models/default-walk.mp4',
+      videoTurn: '/videos/models/default-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/pants-wide-garment.png',
     },
     status: 'published',
@@ -336,8 +358,12 @@ export const PRODUCTS: Product[] = [
       { id: 'col-1', name: 'Obsidian', hex: '#1a1a1a' },
       { id: 'col-12', name: 'Oxblood', hex: '#4a0e0e' },
     ],
-    images: ['/images/products/acc-choker-1.jpg'],
+    images: ['/images/products/placeholder.jpg'],
     assets: {
+      videoIdle: '/videos/models/corset-patent-idle.mp4',
+      videoWalk: '/videos/models/default-walk.mp4',
+      videoTurn: '/videos/models/corset-patent-turn.mp4',
+      videoPose: '/videos/models/default-pose.mp4',
       tryonGarment: '/images/tryon/acc-choker-garment.png',
     },
     status: 'published',
@@ -348,35 +374,29 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
-/** Returns products filtered by category slug */
 export function getProductsByCategory(slug: string): Product[] {
   if (slug === 'all') return PRODUCTS;
   return PRODUCTS.filter((p) => p.category.slug === slug);
 }
 
-/** Returns a single product by ID */
 export function getProductById(id: string): Product | undefined {
   return PRODUCTS.find((p) => p.id === id);
 }
 
-/** Returns featured products */
 export function getFeaturedProducts(): Product[] {
   return PRODUCTS.filter((p) => p.isFeatured && p.status === 'published');
 }
 
-/** Returns new arrivals (last 30 days mock) */
 export function getNewArrivals(limit = 6): Product[] {
   return [...PRODUCTS]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, limit);
 }
 
-/** Currency formatter — Bangladeshi Taka */
 export function formatBDT(amount: number): string {
   return `৳${amount.toLocaleString('en-BD')}`;
 }
 
-/** Returns all categories with product counts */
 export function getAllCategories() {
   return CATEGORIES;
 }

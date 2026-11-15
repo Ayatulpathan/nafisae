@@ -3,29 +3,28 @@
 /**
  * NAFISAÉ Virtual Fashion Studio
  *
- * Layout faithfully recreated from reference video:
- *  - LEFT: Full-height model stage + bracketed category nav
- *  - RIGHT: Staggered asymmetrical miniature outfit rack (white canvas)
- *  - BOTTOM HUD: Selected product details, price ৳, sizes, colors, Add to Bag
- *  - TOP: Mode switcher (Video / 3D / AI Try-On) + animation controls
+ * Phase 2 Enhanced:
+ *  - High-performance double-buffered VideoModelViewer
+ *  - Real-time outfit switching with cross-fade (no black flash / layout jump)
+ *  - Real animation loops (Idle, Walk, Turn, Pose)
+ *  - Seamless state synchronization across video, 3D, and AI modes
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { X, ChevronRight } from 'lucide-react';
+import { X, ChevronRight, Play, Pause, RefreshCw } from 'lucide-react';
 import { useStudio } from '@/contexts/StudioContext';
 import { useCart } from '@/contexts/CartContext';
 import { PRODUCTS, formatBDT } from '@/data/products';
 import { AnimationType, ViewMode, Product, Color } from '@/types/product';
+import VideoModelViewer from '@/components/fashion-studio/VideoModelViewer';
 
-// ── Mode tab label map ───────────────────────────────────────
 const MODE_LABELS: Record<ViewMode, string> = {
   video: 'Video Model',
   '3d': '3D Viewer',
   tryon: 'AI Try-On',
 };
 
-// ── Animation label map ──────────────────────────────────────
 const ANIM_LABELS: Record<AnimationType, string> = {
   idle: 'Idle',
   walk: 'Walk',
@@ -33,7 +32,6 @@ const ANIM_LABELS: Record<AnimationType, string> = {
   pose: 'Pose',
 };
 
-// ── Stagger positions for the miniature rack (reference-style)
 const RACK_POSITIONS = [
   { x: '8%',  y: '5%',  w: '28%', h: '44%' },
   { x: '55%', y: '2%',  w: '24%', h: '40%' },
@@ -44,18 +42,26 @@ const RACK_POSITIONS = [
 ];
 
 export default function VirtualStudioPage() {
-  const { selectedProduct, selectedCategory, activeMode, activeAnimation,
-          selectProduct, selectCategory, setMode, setAnimation,
-          filteredProducts, categories } = useStudio();
-  const { addItem } = useCart();
+  const {
+    selectedProduct,
+    selectedCategory,
+    activeMode,
+    activeAnimation,
+    selectProduct,
+    selectCategory,
+    setMode,
+    setAnimation,
+    filteredProducts,
+    categories,
+  } = useStudio();
 
+  const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<Color | null>(
     selectedProduct?.colors[0] ?? null
   );
   const [addFeedback, setAddFeedback] = useState(false);
 
-  // Update color picker when product changes
   useEffect(() => {
     if (selectedProduct) {
       setSelectedColor(selectedProduct.colors[0] ?? null);
@@ -74,15 +80,27 @@ export default function VirtualStudioPage() {
     setTimeout(() => setAddFeedback(false), 2000);
   };
 
+  // Determine active video source based on garment and active motion state
+  const getVideoSrc = (): string => {
+    if (!selectedProduct?.assets) return '/videos/models/default-idle.mp4';
+    const { videoIdle, videoWalk, videoTurn, videoPose } = selectedProduct.assets;
+    switch (activeAnimation) {
+      case 'walk':
+        return videoWalk || videoIdle || '/videos/models/default-walk.mp4';
+      case 'turn':
+        return videoTurn || videoIdle || '/videos/models/default-turn.mp4';
+      case 'pose':
+        return videoPose || videoIdle || '/videos/models/default-pose.mp4';
+      case 'idle':
+      default:
+        return videoIdle || '/videos/models/default-idle.mp4';
+    }
+  };
+
   return (
     <div className="fixed inset-0 top-14 bg-[#FDFDFB] flex flex-col overflow-hidden">
-
-      {/* ══════════════════════════════════════════════════════
-          TOP BAR — Mode switcher + animation controls
-      ═══════════════════════════════════════════════════════ */}
+      {/* ── Top Bar: Mode switcher + Animation controls ─── */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-black/8 bg-[#FDFDFB] flex-shrink-0">
-
-        {/* Mode Tabs */}
         <div className="flex items-center gap-0">
           {(Object.keys(MODE_LABELS) as ViewMode[]).map((mode) => (
             <button
@@ -99,18 +117,20 @@ export default function VirtualStudioPage() {
           ))}
         </div>
 
-        {/* Animation Controls (video mode only) */}
+        {/* Animation Motion Controls (Active in Video Mode) */}
         {activeMode === 'video' && (
           <div className="flex items-center gap-1">
-            <span className="text-[7px] tracking-[0.3em] uppercase text-black/30 mr-2">Motion</span>
+            <span className="text-[7px] tracking-[0.3em] uppercase text-black/30 mr-2">
+              Model Motion
+            </span>
             {(Object.keys(ANIM_LABELS) as AnimationType[]).map((anim) => (
               <button
                 key={anim}
                 onClick={() => setAnimation(anim)}
-                className={`text-[7px] tracking-[0.25em] uppercase px-3 py-1.5 border transition-all ${
+                className={`text-[7px] tracking-[0.25em] uppercase px-3.5 py-1.5 border transition-all ${
                   activeAnimation === anim
-                    ? 'bg-[#080808] text-white border-black'
-                    : 'border-black/15 hover:border-black'
+                    ? 'bg-[#080808] text-white border-black font-semibold'
+                    : 'border-black/15 hover:border-black text-black/70'
                 }`}
               >
                 {ANIM_LABELS[anim]}
@@ -119,27 +139,24 @@ export default function VirtualStudioPage() {
           </div>
         )}
 
-        {/* Close Button */}
         <Link href="/" className="ml-4 hover:opacity-50 transition-opacity">
           <X size={16} strokeWidth={1.5} />
         </Link>
       </div>
 
-      {/* ══════════════════════════════════════════════════════
-          MAIN SPLIT CANVAS
-      ═══════════════════════════════════════════════════════ */}
+      {/* ── Main Split Canvas ─── */}
       <div className="flex flex-1 overflow-hidden">
-
-        {/* ── LEFT SIDE: Category Nav + Model Stage ─── */}
+        {/* Left Side: Category Nav + Model Stage */}
         <div className="relative flex" style={{ width: '52%' }}>
-
-          {/* Category Navigation Rail */}
+          {/* Vertical Category Bracket Index */}
           <nav className="flex-shrink-0 w-36 bg-[#F5F5F0] flex flex-col pt-6 pb-4 border-r border-black/8 overflow-y-auto">
             <div className="px-4 mb-4">
               <p className="text-[7px] tracking-[0.4em] uppercase text-black/30 mb-1">MENU +</p>
               <button
                 onClick={() => selectCategory('all')}
-                className={`text-[7px] tracking-[0.25em] uppercase hover:opacity-50 transition-opacity ${selectedCategory === 'all' ? 'font-black' : 'text-black/50'}`}
+                className={`text-[7px] tracking-[0.25em] uppercase hover:opacity-50 transition-opacity ${
+                  selectedCategory === 'all' ? 'font-black' : 'text-black/50'
+                }`}
               >
                 SHOP ALL
               </button>
@@ -149,7 +166,6 @@ export default function VirtualStudioPage() {
               <p className="text-[7px] tracking-[0.4em] uppercase text-black/20 mb-3">CATEGORIES</p>
             </div>
 
-            {/* Bracketed Category List — exact reference style */}
             <ul className="flex-1 space-y-0">
               {categories.map((cat) => (
                 <li key={cat.id}>
@@ -164,27 +180,29 @@ export default function VirtualStudioPage() {
                     <span className="text-[8px] tracking-[0.2em] uppercase font-semibold">
                       {cat.name.toUpperCase()}
                     </span>
-                    <span className={`text-[7px] tracking-[0.1em] ml-2 ${
-                      selectedCategory === cat.slug ? 'text-white/70' : 'text-black/30'
-                    }`}>
-                      [{String(cat.productCount ?? 0).padStart(2,'0')}]
+                    <span
+                      className={`text-[7px] tracking-[0.1em] ml-2 ${
+                        selectedCategory === cat.slug ? 'text-white/70' : 'text-black/30'
+                      }`}
+                    >
+                      [{String(cat.productCount ?? 0).padStart(2, '0')}]
                     </span>
                   </button>
                 </li>
               ))}
             </ul>
 
-            {/* Model info */}
             <div className="px-4 mt-auto pt-4 border-t border-black/8">
-              <p className="text-[6px] tracking-[0.3em] uppercase text-black/20">STUDIO ROOM</p>
-              <p className="text-[7px] tracking-[0.2em] uppercase text-black/40 mt-0.5">MODEL A/01</p>
+              <p className="text-[6px] tracking-[0.3em] uppercase text-black/20">STUDIO STAGE</p>
+              <p className="text-[7px] tracking-[0.2em] uppercase text-black/40 mt-0.5">
+                RUNWAY 26
+              </p>
             </div>
           </nav>
 
           {/* Model Stage */}
           <div className="flex-1 relative bg-[#EEEEE9] studio-grid overflow-hidden">
-
-            {/* Large active category typography — bottom left */}
+            {/* Massive Active Category Headline (bottom left) */}
             <div className="absolute bottom-6 left-4 z-20 pointer-events-none">
               <p
                 className="text-[42px] lg:text-[56px] font-black uppercase leading-none tracking-tight opacity-90"
@@ -202,64 +220,45 @@ export default function VirtualStudioPage() {
               </p>
             </div>
 
-            {/* Model Display Area */}
-            {activeMode === 'video' && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                {/* Video placeholder — real video tag with src when assets available */}
-                {selectedProduct?.assets?.videoIdle ? (
-                  <video
-                    key={`${selectedProduct.id}-${activeAnimation}`}
-                    src={
-                      activeAnimation === 'walk' ? selectedProduct.assets.videoWalk :
-                      activeAnimation === 'turn' ? selectedProduct.assets.videoTurn :
-                      activeAnimation === 'pose' ? selectedProduct.assets.videoPose :
-                      selectedProduct.assets.videoIdle
-                    }
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="h-full max-h-[88%] object-contain"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center gap-3 text-center">
-                    <div className="w-32 h-64 bg-gradient-to-b from-[#d8d8d3] to-[#c0c0bb] opacity-60" />
-                    <p className="text-[7px] tracking-[0.4em] uppercase text-black/20 placeholder-pulse">
-                      Video Model
-                    </p>
-                    <p className="text-[6px] tracking-[0.3em] uppercase text-black/15">
-                      {selectedProduct?.name}
-                    </p>
-                  </div>
-                )}
-              </div>
+            {/* Video Model Viewer Component */}
+            {activeMode === 'video' && selectedProduct && (
+              <VideoModelViewer
+                productId={selectedProduct.id}
+                videoSrc={getVideoSrc()}
+                posterSrc={getVideoSrc().replace('.mp4', '.jpg')}
+                animationType={activeAnimation}
+                modelId="AURA / MODEL-01"
+              />
             )}
 
+            {/* 3D Mode */}
             {activeMode === '3d' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                <div className="w-28 h-56 bg-gradient-to-b from-[#d0d0cb] to-[#b8b8b3] opacity-60 animate-pulse" />
-                <p className="text-[7px] tracking-[0.4em] uppercase text-black/30">3D Viewer</p>
-                <p className="text-[6px] tracking-[0.25em] uppercase text-black/20">
-                  Three.js / React Three Fiber — Phase 3
+                <div className="w-32 h-64 bg-gradient-to-b from-[#d0d0cb] to-[#b8b8b3] opacity-60 animate-pulse" />
+                <p className="text-[8px] tracking-[0.4em] uppercase text-black/40">
+                  Three.js 3D Fashion Viewer
+                </p>
+                <p className="text-[7px] tracking-[0.25em] uppercase text-black/25">
+                  Preparing WebGL Engine — Phase 3
                 </p>
               </div>
             )}
 
+            {/* AI Try-On Mode */}
             {activeMode === 'tryon' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center">
-                <div className="border border-black/10 p-8 max-w-xs">
-                  <p className="text-[8px] tracking-[0.3em] uppercase text-black/40 mb-2">
+                <div className="border border-black/10 p-8 max-w-xs bg-white/50 backdrop-blur-sm">
+                  <p className="text-[8px] tracking-[0.3em] uppercase text-black/40 mb-2 font-bold">
                     AI Virtual Try-On
                   </p>
-                  <p className="text-[7px] tracking-[0.2em] uppercase text-black/25 leading-relaxed">
-                    Local PyTorch inference service — Phase 4.
-                    Upload your photo once the AI service is configured.
+                  <p className="text-[7px] tracking-[0.2em] uppercase text-black/35 leading-relaxed">
+                    Upload your photograph to synthesize this garment onto your personal physique.
                   </p>
                   <Link
                     href="/try-on"
-                    className="mt-4 inline-block border border-black/20 px-5 py-2 text-[7px] tracking-[0.3em] uppercase hover:bg-black hover:text-white transition-colors"
+                    className="mt-4 inline-block bg-black text-white px-5 py-2.5 text-[7px] tracking-[0.3em] uppercase hover:bg-black/80 transition-colors"
                   >
-                    Go to Try-On Page
+                    Open Try-On Studio
                   </Link>
                 </div>
               </div>
@@ -267,9 +266,8 @@ export default function VirtualStudioPage() {
           </div>
         </div>
 
-        {/* ── RIGHT SIDE: Miniature Outfit Rack ─── */}
+        {/* Right Side: Staggered Miniature Outfit Rack */}
         <div className="flex-1 relative bg-[#FDFDFB] border-l border-black/8 overflow-hidden">
-          {/* Brand label — top center */}
           <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10">
             <p
               className="text-[11px] tracking-[0.4em] font-black uppercase"
@@ -279,7 +277,6 @@ export default function VirtualStudioPage() {
             </p>
           </div>
 
-          {/* Staggered miniature outfit cards */}
           {filteredProducts.slice(0, 6).map((product, i) => {
             const pos = RACK_POSITIONS[i] ?? RACK_POSITIONS[0];
             const isActive = selectedProduct?.id === product.id;
@@ -295,58 +292,68 @@ export default function VirtualStudioPage() {
                   width: pos.w,
                   height: pos.h,
                 }}
-                className={`group text-left transition-all duration-200 ${
-                  isActive ? 'z-20' : 'z-10 hover:z-20'
+                className={`group text-left transition-all duration-300 ${
+                  isActive ? 'z-20 scale-[1.03]' : 'z-10 hover:z-20 hover:scale-[1.01]'
                 }`}
               >
-                {/* Model card */}
                 <div
-                  className={`w-full h-full border transition-all duration-200 flex flex-col ${
+                  className={`w-full h-full border transition-all duration-300 flex flex-col ${
                     isActive
-                      ? 'border-[#080808] shadow-lg shadow-black/15'
-                      : 'border-transparent hover:border-black/20'
+                      ? 'border-[#080808] shadow-xl shadow-black/10'
+                      : 'border-black/10 hover:border-black/30'
                   }`}
                   style={{ backgroundColor: isActive ? '#F0F0EB' : '#F7F7F2' }}
                 >
-                  {/* Model silhouette area */}
                   <div className="flex-1 flex items-end justify-center px-2 pt-2 pb-1 relative overflow-hidden">
-                    {/* Placeholder human silhouette */}
-                    <div className="flex flex-col items-center gap-0.5 w-full">
-                      <div
-                        className={`w-3 h-3 rounded-full border border-black/20 ${isActive ? 'bg-black/10' : 'bg-black/5'}`}
-                        style={{ width: '20%', aspectRatio: '1/1', borderRadius: '50%' }}
+                    {/* Miniature video preview if active, or styled silhouette */}
+                    {product.assets?.videoIdle && isActive ? (
+                      <video
+                        src={product.assets.videoIdle}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="h-full w-full object-contain"
+                        style={{ mixBlendMode: 'multiply' }}
                       />
-                      <div
-                        className="border border-black/15"
-                        style={{
-                          width: '35%',
-                          height: '55%',
-                          backgroundColor: product.colors[0]?.hex ?? '#d0d0cb',
-                          opacity: 0.8,
-                        }}
-                      />
-                      <div
-                        className="border border-black/10"
-                        style={{
-                          width: '28%',
-                          height: '28%',
-                          backgroundColor: '#c8c8c3',
-                          opacity: 0.5,
-                        }}
-                      />
-                    </div>
-                    {/* Active indicator */}
+                    ) : (
+                      <div className="flex flex-col items-center gap-0.5 w-full">
+                        <div
+                          className={`w-3 h-3 rounded-full border border-black/20 ${
+                            isActive ? 'bg-black/15' : 'bg-black/5'
+                          }`}
+                          style={{ width: '22%', aspectRatio: '1/1', borderRadius: '50%' }}
+                        />
+                        <div
+                          className="border border-black/15"
+                          style={{
+                            width: '38%',
+                            height: '55%',
+                            backgroundColor: product.colors[0]?.hex ?? '#d0d0cb',
+                            opacity: 0.85,
+                          }}
+                        />
+                        <div
+                          className="border border-black/10"
+                          style={{
+                            width: '30%',
+                            height: '28%',
+                            backgroundColor: '#c8c8c3',
+                            opacity: 0.5,
+                          }}
+                        />
+                      </div>
+                    )}
                     {isActive && (
-                      <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#080808] rounded-full" />
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-[#080808] rounded-full ring-2 ring-white" />
                     )}
                   </div>
 
-                  {/* Product name */}
-                  <div className="px-2 pb-1.5">
-                    <p className="text-[6px] tracking-[0.2em] uppercase font-semibold truncate leading-tight">
+                  <div className="px-2.5 pb-2 pt-1 border-t border-black/5">
+                    <p className="text-[7px] tracking-[0.15em] uppercase font-bold truncate leading-tight">
                       {product.name}
                     </p>
-                    <p className="text-[5px] tracking-[0.15em] uppercase text-black/40 truncate">
+                    <p className="text-[6px] tracking-[0.1em] uppercase text-black/50 truncate">
                       {formatBDT(product.salePrice ?? product.price)}
                     </p>
                   </div>
@@ -355,34 +362,28 @@ export default function VirtualStudioPage() {
             );
           })}
 
-          {/* Item count indicator */}
           <div className="absolute bottom-5 right-5 text-[7px] tracking-[0.3em] uppercase text-black/30">
-            {filteredProducts.length} Looks
+            {filteredProducts.length} Silhouettes
           </div>
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════
-          BOTTOM HUD — Selected product details
-      ═══════════════════════════════════════════════════════ */}
+      {/* ── Bottom HUD ─── */}
       {selectedProduct && (
-        <div className="flex-shrink-0 border-t border-black/8 bg-[#FDFDFB] px-6 py-4 flex flex-wrap items-center gap-6">
-
-          {/* Product Identity */}
+        <div className="flex-shrink-0 border-t border-black/8 bg-[#FDFDFB] px-6 py-4 flex flex-wrap items-center gap-6 z-30">
           <div className="flex-1 min-w-[180px]">
             <p className="text-[7px] tracking-[0.35em] uppercase text-black/30">
               {selectedProduct.collectionTag ?? selectedProduct.category.name}
             </p>
-            <p className="text-[12px] tracking-[0.1em] uppercase font-semibold mt-0.5">
+            <p className="text-[12px] tracking-[0.1em] uppercase font-bold mt-0.5">
               {selectedProduct.name}
             </p>
           </div>
 
-          {/* Price */}
           <div className="flex flex-col">
             <p className="text-[7px] tracking-[0.3em] uppercase text-black/30">Price</p>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-[14px] font-semibold tracking-tight">
+              <span className="text-[14px] font-bold tracking-tight">
                 {formatBDT(selectedProduct.salePrice ?? selectedProduct.price)}
               </span>
               {selectedProduct.salePrice && (
@@ -393,7 +394,6 @@ export default function VirtualStudioPage() {
             </div>
           </div>
 
-          {/* Sizes */}
           <div>
             <p className="text-[7px] tracking-[0.3em] uppercase text-black/30 mb-1.5">Size</p>
             <div className="flex gap-1">
@@ -403,7 +403,7 @@ export default function VirtualStudioPage() {
                   onClick={() => setSelectedSize(size)}
                   className={`text-[7px] tracking-[0.2em] px-2.5 py-1.5 border transition-all ${
                     selectedSize === size
-                      ? 'bg-[#080808] text-white border-black'
+                      ? 'bg-[#080808] text-white border-black font-bold'
                       : 'border-black/15 hover:border-black'
                   }`}
                 >
@@ -413,7 +413,6 @@ export default function VirtualStudioPage() {
             </div>
           </div>
 
-          {/* Colors */}
           <div>
             <p className="text-[7px] tracking-[0.3em] uppercase text-black/30 mb-1.5">Colour</p>
             <div className="flex gap-1.5">
@@ -423,7 +422,9 @@ export default function VirtualStudioPage() {
                   title={color.name}
                   onClick={() => setSelectedColor(color)}
                   className={`w-6 h-6 border-2 transition-all ${
-                    selectedColor?.id === color.id ? 'border-black scale-110' : 'border-transparent hover:border-black/30'
+                    selectedColor?.id === color.id
+                      ? 'border-black scale-110'
+                      : 'border-transparent hover:border-black/30'
                   }`}
                   style={{ backgroundColor: color.hex }}
                 />
@@ -431,23 +432,22 @@ export default function VirtualStudioPage() {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-2 ml-auto">
             <Link
               href={`/product/${selectedProduct.id}`}
-              className="border border-black/20 px-5 py-2.5 text-[7px] tracking-[0.35em] uppercase hover:bg-black/5 transition-colors"
+              className="border border-black/20 px-5 py-2.5 text-[7px] tracking-[0.35em] uppercase hover:bg-black/5 transition-colors font-medium"
             >
               Details
             </Link>
             <button
               onClick={handleAddToCart}
               disabled={!selectedSize || !selectedColor}
-              className={`px-6 py-2.5 text-[8px] tracking-[0.35em] uppercase font-semibold transition-all ${
+              className={`px-6 py-2.5 text-[8px] tracking-[0.35em] uppercase font-bold transition-all ${
                 addFeedback
                   ? 'bg-green-800 text-white'
                   : !selectedSize || !selectedColor
-                    ? 'bg-black/10 text-black/30 cursor-not-allowed'
-                    : 'bg-[#080808] text-[#FDFDFB] hover:bg-[#080808]/80'
+                  ? 'bg-black/10 text-black/30 cursor-not-allowed'
+                  : 'bg-[#080808] text-[#FDFDFB] hover:bg-[#080808]/80'
               }`}
             >
               {addFeedback ? '✓ Added' : !selectedSize ? 'Select Size' : 'Add to Bag'}
